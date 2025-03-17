@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supply Chain Management</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+      }
+      
+      .node {
+        border: 1px solid #bdbdbd;
+        border-radius: 4px;
+        background-color: white;
+        padding: 10px;
+        width: 160px;
+        text-align: center;
+        font-size: 14px;
+      }
+      
+      .node.selected {
+        border: 2px solid #3f51b5;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .recharts-wrapper {
+        margin: 0 auto;
+      }
+      
+      /* Force Graph styling */
+      .force-graph-container .graph-tooltip {
+        background-color: #fff;
+        padding: 8px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        font-family: 'Roboto', sans-serif;
+        font-size: 12px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
