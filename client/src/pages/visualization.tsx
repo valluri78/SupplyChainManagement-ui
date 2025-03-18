@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -60,6 +60,48 @@ const Visualization = () => {
 
   const handleViewModeChange = (mode: string) => {
     setViewMode(mode);
+  };
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullScreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullScreen(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+  }, []);
+
+  const [graphData, setGraphData] = useState<{ nodes: NetworkData['nodes'], links: NetworkData['links'] }>({ nodes: [{ id: "hub", name: "Central Hub", type: "central", value: 100, group: "central" }], links: [] });
+
+  const handleNodeClick = (node: any) => {
+    if (node.type === "central") {
+      // Show only Distributors
+      const newNodes = networkData.nodes.filter((n) => n.type === "central" || n.type === "distribution");
+      const newLinks = networkData.links.filter((l) => l.source === "hub");
+      setGraphData({ nodes: newNodes, links: newLinks });
+    } else if (node.type === "distribution") {
+      // Show only clicked Distributor and its Retail nodes
+      const newNodes = networkData.nodes.filter((n) => n.id === node.id || n.type === "central" || n.type === "distribution" || networkData.links.some((l) => l.source === node.id && l.target === n.id));
+      const newLinks = networkData.links.filter((l) => l.source === node.id || l.source === "hub");
+      setGraphData({ nodes: newNodes, links: newLinks });
+    }
+    else if (node.type === "retail") {
+      // Show only clicked Distributor and its Retail nodes
+      const newNodes = networkData.nodes.filter((n) => n.id === node.id || n.type === "central" || n.type === "distribution" || networkData.links.some((l) => l.source === node.id && l.target === n.id));
+      const newLinks = networkData.links.filter((l) => l.source === node.id || l.source === "hub");
+      setGraphData({ nodes: networkData.nodes, links: networkData.links });
+    }
   };
 
   return (
@@ -148,19 +190,7 @@ const Visualization = () => {
           </ButtonGroup>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", width: 200 }}>
-              <Typography variant="body2" sx={{ mr: 2 }}>
-                Zoom
-              </Typography>
-              <Slider
-                value={zoom}
-                onChange={handleZoomChange}
-                min={50}
-                max={150}
-                size="small"
-              />
-            </Box>
-            <IconButton aria-label="fullscreen">
+            <IconButton aria-label="fullscreen" onClick={toggleFullScreen}>
               <Fullscreen />
             </IconButton>
           </Box>
@@ -178,7 +208,7 @@ const Visualization = () => {
         >
           {viewMode === "network" && (
             <ForceGraph2D
-              graphData={networkData}
+              graphData={graphData}
               nodeLabel={(node: any) => `${node.name}`}
               nodeAutoColorBy="type"
               nodeRelSize={8}
@@ -186,6 +216,7 @@ const Visualization = () => {
               linkDirectionalParticles={2}
               linkDirectionalParticleWidth={2}
               backgroundColor="#f8f9fa"
+              onNodeClick={handleNodeClick}
               nodeCanvasObject={(node: any, ctx, globalScale) => {
                 const label = node.name;
                 const fontSize = 12/globalScale;
@@ -264,103 +295,8 @@ const Visualization = () => {
               <Typography variant="body2">Retail Locations</Typography>
             </Box>
           </Box>
-          <Typography variant="body2" color="text.secondary">
-            Hover over nodes for detailed information
-          </Typography>
         </Box>
       </Paper>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="h6" fontWeight="600" gutterBottom>
-              Performance Metrics by Region
-            </Typography>
-            <Box sx={{ height: 300, mt: 3 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={regionData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="shipmentVolume" stackId="a" name="Shipment Volume" fill={theme.palette.primary.main} />
-                  <Bar dataKey="processingTime" stackId="a" name="Processing Time" fill={theme.palette.warning.main} />
-                  <Bar dataKey="deliveryRate" stackId="a" name="Delivery Rate" fill={theme.palette.success.main} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="h6" fontWeight="600" gutterBottom>
-              Network Efficiency Trends
-            </Typography>
-            <Box sx={{ height: 300, mt: 3 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={efficiencyData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="quarter" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="networkEfficiency"
-                    name="Network Efficiency"
-                    stroke={theme.palette.primary.main}
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="capacityUtilization"
-                    name="Capacity Utilization"
-                    stroke={theme.palette.secondary.main}
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="costEfficiency"
-                    name="Cost Efficiency"
-                    stroke={theme.palette.warning.main}
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
     </Box>
   );
 };
