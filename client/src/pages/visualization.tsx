@@ -182,7 +182,7 @@ const Visualization = () => {
 
       <Box
         sx={{
-          height: "calc(100vh - 180px)",
+          height: "100vh",
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 1,
           bgcolor: theme.palette.grey[50],
@@ -199,13 +199,13 @@ const Visualization = () => {
           linkWidth={2}
           linkDirectionalParticles={2}
           linkDirectionalParticleWidth={2}
-          minZoom={10}
+          minZoom={9}
           maxZoom={15}
           backgroundColor="#f8f9fa"
           onNodeClick={handleNodeClick} // Ensure node click works
           nodeCanvasObject={(node: any, ctx, globalScale) => {
             const label = node.name;
-            const fontSize = 12 / globalScale;
+            const fontSize = 8 / globalScale;
             ctx.font = `${fontSize}px Sans-Serif`;
 
             // Measure text width
