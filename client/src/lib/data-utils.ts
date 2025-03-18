@@ -1,4 +1,4 @@
-import { FlowNode, FlowEdge, NetworkData, RegionData, EfficiencyData, Node, Edge } from "./types";
+import { FlowNode, FlowEdge, NetworkData, RegionData, EfficiencyData, Node, Edge, NetworkNode } from "./types";
 
 // Convert backend nodes to React Flow nodes
 export const convertToFlowNodes = (nodes: Node[]): FlowNode[] => {
@@ -166,36 +166,70 @@ export const getEfficiencyTrendData = (): EfficiencyData[] => {
 export const getNetworkData = (region: string = 'all'): NetworkData => {
   // This is a sample structure of the network data
   // In a real application, this would come from the API based on the region
-  const allNodes = [
-    { id: 'hub', name: 'Central Hub', type: 'central' as const, value: 100, group: 'global' },
-    { id: 'dc1', name: 'US Distribution', type: 'distribution' as const, value: 60, group: 'north_america' },
-    { id: 'dc2', name: 'EU Distribution', type: 'distribution' as const, value: 60, group: 'europe' },
-    { id: 'dc3', name: 'Asia Distribution', type: 'distribution' as const, value: 60, group: 'asia_pacific' },
-    { id: 'dc4', name: 'LATAM Distribution', type: 'distribution' as const, value: 60, group: 'latin_america' },
-    { id: 'r1', name: 'NY Retail', type: 'retail' as const, value: 30, group: 'north_america' },
-    { id: 'r2', name: 'LA Retail', type: 'retail' as const, value: 30, group: 'north_america' },
-    { id: 'r3', name: 'London Retail', type: 'retail' as const, value: 30, group: 'europe' },
-    { id: 'r4', name: 'Paris Retail', type: 'retail' as const, value: 30, group: 'europe' },
-    { id: 'r5', name: 'Tokyo Retail', type: 'retail' as const, value: 30, group: 'asia_pacific' },
-    { id: 'r6', name: 'Sydney Retail', type: 'retail' as const, value: 30, group: 'asia_pacific' },
-    { id: 'r7', name: 'Mexico City Retail', type: 'retail' as const, value: 30, group: 'latin_america' },
-    { id: 'r8', name: 'Sao Paulo Retail', type: 'retail' as const, value: 30, group: 'latin_america' },
-  ];
+  const generateMockData = () => {
+    const regions = [
+      'north_america', 'europe', 'asia_pacific', 'latin_america', 'africa',
+      'middle_east', 'south_asia', 'oceania', 'central_asia', 'caribbean'
+    ];
+    const retailCities = [
+      'NY', 'LA', 'London', 'Paris', 'Tokyo', 'Sydney', 'Mexico City', 'Sao Paulo', 
+      'Cape Town', 'Dubai', 'Mumbai', 'Auckland', 'Almaty', 'Havana', 'Toronto', 
+      'Berlin', 'Shanghai', 'Buenos Aires', 'Nairobi', 'Singapore'
+    ];
+  
+    // Generate nodes
+    const allNodes: NetworkNode[] = [];
+    
+    // 1 Central Hub
+    allNodes.push({ id: 'hub', name: 'Central Hub', type: 'central', value: 100, group: 'global' });
+  
+    // 50 Distribution Centers (5 per region, 10 regions)
+    for (let i = 0; i < 50; i++) {
+      const region = regions[i % regions.length] as 'central' | 'distribution' | 'retail';
+      allNodes.push({
+        id: `dc${i + 1}`,
+        name: `${region.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')} DC ${Math.floor(i / regions.length) + 1}`,
+        type: 'distribution',
+        value: 60,
+        group: region
+      });
+    }
+  
+    // 949 Retail Locations (distributed across regions)
+    for (let i = 0; i < 949; i++) {
+      const region = regions[i % regions.length];
+      const cityBase = retailCities[i % retailCities.length];
+      const suffix = Math.floor(i / retailCities.length) || '';
+      allNodes.push({
+        id: `r${i + 1}`,
+        name: `${cityBase} Retail ${suffix || 1}`,
+        type: 'retail',
+        value: 30,
+        group: region
+      });
+    }
+  
+    // Generate links
+    const allLinks = [];
+  
+    // Hub to all distribution centers
+    for (let i = 1; i <= 50; i++) {
+      allLinks.push({ source: 'hub', target: `dc${i}`, value: 5 });
+    }
+  
+    // Distribution centers to retail (each DC connects to ~19 retail nodes)
+    let retailIdx = 0;
+    for (let dcIdx = 1; dcIdx <= 50; dcIdx++) {
+      const retailCount = dcIdx <= 49 ? 19 : 18; // Last DC gets 18 to fit 949 total
+      for (let j = 0; j < retailCount && retailIdx < 949; j++, retailIdx++) {
+        allLinks.push({ source: `dc${dcIdx}`, target: `r${retailIdx + 1}`, value: 3 });
+      }
+    }
+  
+    return { allNodes, allLinks };
+  };
 
-  const allLinks = [
-    { source: 'hub', target: 'dc1', value: 5 },
-    { source: 'hub', target: 'dc2', value: 5 },
-    { source: 'hub', target: 'dc3', value: 5 },
-    { source: 'hub', target: 'dc4', value: 5 },
-    { source: 'dc1', target: 'r1', value: 3 },
-    { source: 'dc1', target: 'r2', value: 3 },
-    { source: 'dc2', target: 'r3', value: 3 },
-    { source: 'dc2', target: 'r4', value: 3 },
-    { source: 'dc3', target: 'r5', value: 3 },
-    { source: 'dc3', target: 'r6', value: 3 },
-    { source: 'dc4', target: 'r7', value: 3 },
-    { source: 'dc4', target: 'r8', value: 3 },
-  ];
+  const { allNodes, allLinks } = generateMockData();
 
   // Filter by region if specified
   if (region !== 'all' && region !== '') {

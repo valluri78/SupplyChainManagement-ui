@@ -114,7 +114,7 @@ const Visualization = () => {
           mb: 3,
         }}
       >
-        <Typography variant="h4" fontWeight="600" color="text.primary">
+        <Typography variant="h6" fontWeight="400" color="text.primary">
           Supply Chain Visualization
         </Typography>
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -146,157 +146,83 @@ const Visualization = () => {
           >
             Export
           </Button>
-        </Box>
-      </Box>
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          mb: 3,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <ButtonGroup variant="outlined" aria-label="view mode">
-            <Button
-              variant={viewMode === "network" ? "contained" : "outlined"}
-              color={viewMode === "network" ? "primary" : "inherit"}
-              onClick={() => handleViewModeChange("network")}
-            >
-              Network View
-            </Button>
-            <Button
-              variant={viewMode === "geographic" ? "contained" : "outlined"}
-              color={viewMode === "geographic" ? "primary" : "inherit"}
-              onClick={() => handleViewModeChange("geographic")}
-            >
-              Geographic View
-            </Button>
-            <Button
-              variant={viewMode === "timeline" ? "contained" : "outlined"}
-              color={viewMode === "timeline" ? "primary" : "inherit"}
-              onClick={() => handleViewModeChange("timeline")}
-            >
-              Timeline View
-            </Button>
-          </ButtonGroup>
-
           <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
             <IconButton aria-label="fullscreen" onClick={toggleFullScreen}>
               <Fullscreen />
             </IconButton>
           </Box>
         </Box>
+      </Box>
+
 
         <Box
           sx={{
-            height: "calc(100vh - 380px)",
+            height: "calc(100vh - 180px)",
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: 1,
             bgcolor: theme.palette.grey[50],
             overflow: "hidden",
             position: "relative",
+            textAlign:'center'
           }}
         >
-          {viewMode === "network" && (
-            <ForceGraph2D
-              graphData={graphData}
-              nodeLabel={(node: any) => `${node.name}`}
-              nodeAutoColorBy="type"
-              nodeRelSize={8}
-              linkWidth={2}
-              linkDirectionalParticles={2}
-              linkDirectionalParticleWidth={2}
-              backgroundColor="#f8f9fa"
-              onNodeClick={handleNodeClick}
-              nodeCanvasObject={(node: any, ctx, globalScale) => {
-                const label = node.name;
-                const fontSize = 12/globalScale;
-                ctx.font = `${fontSize}px Sans-Serif`;
-                const textWidth = ctx.measureText(label).width;
-                const nodeSize = Math.max(4, (node.value || 10) / 3) / globalScale;
-                
-                // Node background
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI, false);
-                
-                // Set color based on node type
-                if (node.type === 'central') {
-                  ctx.fillStyle = theme.palette.primary.main;
-                } else if (node.type === 'distribution') {
-                  ctx.fillStyle = theme.palette.secondary.main;
-                } else {
-                  ctx.fillStyle = theme.palette.warning.main;
-                }
-                
-                ctx.fill();
-                
-                // Draw label
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.fillRect(
-                  node.x - textWidth / 2 - 2,
-                  node.y + nodeSize + 2,
-                  textWidth + 4,
-                  fontSize + 2
-                );
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#000';
-                ctx.fillText(label, node.x, node.y + nodeSize + 2 + fontSize / 2);
-              }}
-            />
-          )}
-        </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  bgcolor: theme.palette.primary.main,
-                  mr: 1,
-                }}
-              />
-              <Typography variant="body2">Central Hub</Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  bgcolor: theme.palette.secondary.main,
-                  mr: 1,
-                }}
-              />
-              <Typography variant="body2">Distribution Centers</Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  bgcolor: theme.palette.warning.main,
-                  mr: 1,
-                }}
-              />
-              <Typography variant="body2">Retail Locations</Typography>
-            </Box>
-          </Box>
+<ForceGraph2D
+  graphData={graphData}
+  nodeLabel={(node: any) => `${node.name}`}
+  nodeAutoColorBy="type"
+  nodeRelSize={4}
+  linkWidth={2}
+  linkDirectionalParticles={2}
+  linkDirectionalParticleWidth={2}
+  minZoom={10}
+  maxZoom={15}
+  backgroundColor="#f8f9fa"
+  onNodeClick={handleNodeClick} // Ensure node click works
+  nodeCanvasObject={(node: any, ctx, globalScale) => {
+    const label = node.name;
+    const fontSize = 12 / globalScale;
+    ctx.font = `${fontSize}px Sans-Serif`;
+
+    // Measure text width
+    const textWidth = ctx.measureText(label).width;
+
+    // Calculate node size dynamically based on text width
+    const minNodeSize = 10 / globalScale; // Minimum node size
+    const padding = 6 / globalScale; // Padding around text
+    const nodeSize = Math.max(minNodeSize, textWidth / 2 + padding); // Ensure node can contain text
+
+    // Draw Node Background
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI, false);
+    ctx.closePath(); // Ensure path is closed for event detection
+
+    // Set color based on node type
+    if (node.type === 'central') {
+      ctx.fillStyle = theme.palette.primary.main;
+    } else if (node.type === 'distribution') {
+      ctx.fillStyle = theme.palette.secondary.main;
+    } else {
+      ctx.fillStyle = theme.palette.warning.main;
+    }
+
+    ctx.fill();
+
+    // Draw Label inside the node
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'white'; // Ensure contrast
+    ctx.fillText(label, node.x, node.y);
+  }}
+  nodePointerAreaPaint={(node, color, ctx) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 10, 0, 2 * Math.PI, false); // Same size as node
+    ctx.fill();
+  }}
+/>
+
         </Box>
-      </Paper>
     </Box>
   );
 };
