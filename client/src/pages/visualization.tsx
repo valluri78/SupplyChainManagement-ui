@@ -199,7 +199,7 @@ const Visualization = () => {
           linkWidth={2}
           linkDirectionalParticles={2}
           linkDirectionalParticleWidth={2}
-          minZoom={9}
+          minZoom={6}
           maxZoom={15}
           backgroundColor="#f8f9fa"
           onNodeClick={handleNodeClick} // Ensure node click works
